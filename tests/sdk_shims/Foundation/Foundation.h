@@ -230,6 +230,7 @@ typedef struct {
 
 @interface NSNotification : NSObject
 @property (readonly, copy) NSNotificationName name;
+@property (nullable, readonly, strong) id object;
 @end
 
 @interface NSNotificationCenter : NSObject
