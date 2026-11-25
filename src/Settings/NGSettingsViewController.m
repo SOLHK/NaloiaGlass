@@ -98,7 +98,7 @@ typedef NS_ENUM(NSInteger, NGSettingsSection) {
     preview.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [stage addSubview:preview];
 
-    UIImageSymbolConfiguration *symCfg = [UIImageSymbolConfiguration configurationWithPointSize:18.0 weight:5];
+    UIImageSymbolConfiguration *symCfg = [UIImageSymbolConfiguration configurationWithPointSize:18.0 weight:UIImageSymbolWeightMedium];
     UITabBarItem *chatItem = [[UITabBarItem alloc] initWithTitle:@"微信"
                                                            image:[UIImage systemImageNamed:@"message.fill" withConfiguration:symCfg]
                                                              tag:0];

@@ -43,6 +43,9 @@
     // WeChat's custom Moments/Discover unread dot views without touching deep trees.
     for (NSUInteger idx = 0; idx < queue.count && idx < 24; idx++) {
         UIView *sub = queue[idx];
+        if (sub.hidden || sub.alpha <= 0.05) {
+            continue;
+        }
         CGRect bounds = sub.bounds;
         NSString *clsName = NSStringFromClass(sub.class) ?: @"";
         BOOL redBg = [self isPredominantlyRedColor:sub.backgroundColor];

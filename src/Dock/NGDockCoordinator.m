@@ -8,12 +8,20 @@
 NSNotificationName const NGDockDidAttachMainTabBarNotification = @"com.solhk.naloiaglass.didAttachMainTabBar";
 
 static char kNGManagedOwnerControllerKey;
+static char kNGNotifiedWindowAttachKey;
 static char kNGOriginalStandardAppearanceKey;
 static char kNGOriginalScrollEdgeAppearanceKey;
 static char kNGOriginalTintColorKey;
 static char kNGHiddenNativeButtonsKey;
 static char kNGCapsuleOverlayViewKey;
 static char kNGAppliedModeStampKey;
+
+@interface NGWeakControllerBox : NSObject
+@property (nonatomic, weak, nullable) UITabBarController *controller;
+@end
+
+@implementation NGWeakControllerBox
+@end
 
 @interface NGDockCoordinator ()
 @property (nonatomic, strong) NSHashTable<UITabBarController *> *managedControllers;
@@ -88,7 +96,8 @@ static char kNGAppliedModeStampKey;
 
 - (BOOL)isManagedMainTabBar:(UITabBar *)tabBar {
     if (!tabBar) return NO;
-    return objc_getAssociatedObject(tabBar, &kNGManagedOwnerControllerKey) != nil;
+    NGWeakControllerBox *box = objc_getAssociatedObject(tabBar, &kNGManagedOwnerControllerKey);
+    return [box isKindOfClass:NGWeakControllerBox.class] && (box.controller != nil);
 }
 
 - (void)attachIfEligible:(UITabBarController *)controller {
@@ -99,11 +108,20 @@ static char kNGAppliedModeStampKey;
         return;
     }
     UITabBar *bar = controller.tabBar;
-    BOOL firstAttach = (objc_getAssociatedObject(bar, &kNGManagedOwnerControllerKey) == nil);
-    objc_setAssociatedObject(bar, &kNGManagedOwnerControllerKey, controller, OBJC_ASSOCIATION_ASSIGN);
+    NGWeakControllerBox *box = objc_getAssociatedObject(bar, &kNGManagedOwnerControllerKey);
+    BOOL firstAttach = (box == nil);
+    if (!box) {
+        box = [[NGWeakControllerBox alloc] init];
+        objc_setAssociatedObject(bar, &kNGManagedOwnerControllerKey, box, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    box.controller = controller;
     [self.managedControllers addObject:controller];
 
-    if (firstAttach) {
+    BOOL windowNewlyAvailable = (bar.window != nil && !objc_getAssociatedObject(bar, &kNGNotifiedWindowAttachKey));
+    if (bar.window != nil && windowNewlyAvailable) {
+        objc_setAssociatedObject(bar, &kNGNotifiedWindowAttachKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    if (firstAttach || windowNewlyAvailable) {
         [NSNotificationCenter.defaultCenter postNotificationName:NGDockDidAttachMainTabBarNotification object:bar];
     }
     [self applyCurrentModeToController:controller];
@@ -113,9 +131,14 @@ static char kNGAppliedModeStampKey;
     if (!NSThread.isMainThread || self.isApplyingLayout || ![NGEnvironment shouldActivatePlugin]) {
         return;
     }
-    UITabBarController *controller = objc_getAssociatedObject(tabBar, &kNGManagedOwnerControllerKey);
+    NGWeakControllerBox *box = objc_getAssociatedObject(tabBar, &kNGManagedOwnerControllerKey);
+    UITabBarController *controller = [box isKindOfClass:NGWeakControllerBox.class] ? box.controller : nil;
     if (![controller isKindOfClass:UITabBarController.class] || controller.tabBar != tabBar) {
         return;
+    }
+    if (tabBar.window != nil && !objc_getAssociatedObject(tabBar, &kNGNotifiedWindowAttachKey)) {
+        objc_setAssociatedObject(tabBar, &kNGNotifiedWindowAttachKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [NSNotificationCenter.defaultCenter postNotificationName:NGDockDidAttachMainTabBarNotification object:tabBar];
     }
     [self applyCurrentModeToController:controller];
 }
@@ -239,7 +262,9 @@ static char kNGAppliedModeStampKey;
 
 - (CGRect)capsuleHostFrameForTabBar:(UITabBar *)bar {
     CGFloat safeBottom = bar.safeAreaInsets.bottom;
-    CGFloat contentAreaHeight = MAX(48.0, CGRectGetHeight(bar.bounds) - safeBottom);
+    CGFloat homeIndicatorClearance = safeBottom > 14.0 ? (safeBottom - 12.0) : safeBottom;
+    CGFloat desiredHeight = NGPreferences.shared.dockHeight;
+    CGFloat contentAreaHeight = MAX(desiredHeight, CGRectGetHeight(bar.bounds) - homeIndicatorClearance);
     return CGRectMake(0.0, 0.0, CGRectGetWidth(bar.bounds), contentAreaHeight);
 }
 
@@ -282,6 +307,7 @@ static char kNGAppliedModeStampKey;
         if (mode == NGDockModeFloatingCapsule) {
             NGCapsuleDockView *existing = objc_getAssociatedObject(bar, &kNGCapsuleOverlayViewKey);
             if ([prevStamp isEqualToString:stamp] && existing && [self areHiddenSnapshotsCurrentForTabBar:bar]) {
+                [NGNativeSolariumStyler suppressWeChatLegacyBackdropsInTabBar:bar];
                 CGRect desired = [self capsuleHostFrameForTabBar:bar];
                 if (!CGRectEqualToRect(existing.frame, desired)) {
                     existing.frame = desired;
@@ -296,6 +322,7 @@ static char kNGAppliedModeStampKey;
 
             [self restoreTabBarToNativeState:bar];
             [self backupAppearanceIfNeededForTabBar:bar];
+            [NGNativeSolariumStyler suppressWeChatLegacyBackdropsInTabBar:bar];
 
             NSArray<UIView *> *hiddenButtons = [self snapshotAndHideNativeButtonsInTabBar:bar];
             if (hiddenButtons.count == 0) {

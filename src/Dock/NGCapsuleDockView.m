@@ -346,16 +346,19 @@
         }
     }
 
+    BOOL forwardedToNativeControl = NO;
     if (wasAlreadySelected && index < self.nativeButtonsSnapshot.count) {
         UIView *nativeView = self.nativeButtonsSnapshot[index];
         if ([nativeView isKindOfClass:UIControl.class]) {
             [(UIControl *)nativeView sendActionsForControlEvents:UIControlEventTouchUpInside];
+            forwardedToNativeControl = YES;
         }
     } else {
         tbc.selectedIndex = index;
     }
 
-    if ([delegate respondsToSelector:@selector(tabBarController:didSelectViewController:)]) {
+    if (!forwardedToNativeControl &&
+        [delegate respondsToSelector:@selector(tabBarController:didSelectViewController:)]) {
         [delegate tabBarController:tbc didSelectViewController:targetVC];
     }
 
@@ -409,7 +412,7 @@
     NGPreferences *prefs = NGPreferences.shared;
     NGDockLayoutMetrics m = NGComputeDockLayoutC((double)CGRectGetWidth(self.bounds),
                                                  (double)prefs.horizontalInset,
-                                                 (double)MIN(prefs.dockHeight, MAX(38.0, CGRectGetHeight(self.bounds))),
+                                                 (double)prefs.dockHeight,
                                                  (unsigned long)count,
                                                  prefs.detachedRightButton ? true : false);
 

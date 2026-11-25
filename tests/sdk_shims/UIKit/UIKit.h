@@ -178,8 +178,15 @@ BOOL UIAccessibilityIsReduceMotionEnabled(void);
 + (UIFont *)monospacedDigitSystemFontOfSize:(CGFloat)fontSize weight:(UIFontWeight)weight;
 @end
 
+typedef NS_ENUM(NSInteger, UIImageSymbolWeight) {
+    UIImageSymbolWeightRegular = 4,
+    UIImageSymbolWeightMedium = 5,
+    UIImageSymbolWeightSemibold = 6,
+    UIImageSymbolWeightBold = 7
+};
+
 @interface UIImageSymbolConfiguration : NSObject
-+ (instancetype)configurationWithPointSize:(CGFloat)pointSize weight:(NSInteger)weight;
++ (instancetype)configurationWithPointSize:(CGFloat)pointSize weight:(UIImageSymbolWeight)weight;
 @end
 
 @interface UIImage : NSObject <NSCopying>
