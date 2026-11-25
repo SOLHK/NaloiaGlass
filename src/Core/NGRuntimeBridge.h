@@ -11,6 +11,6 @@ BOOL NGSwizzleInstanceMethod(Class cls,
 UIVisualEffect * _Nullable NGCreateLiquidGlassEffect(BOOL clearVariant, BOOL interactive);
 UIVisualEffectView * _Nullable NGCreateLiquidGlassView(BOOL clearVariant, BOOL interactive);
 void NGApplyCapsuleCorners(UIView *view, CGFloat fallbackRadius);
-UIColor *NGColorFromHexString(NSString * _Nullable hex, UIColor *fallback);
+UIColor *NGColorFromHexString(NSString * _Nullable hex, UIColor * _Nullable fallback);
 
 NS_ASSUME_NONNULL_END
