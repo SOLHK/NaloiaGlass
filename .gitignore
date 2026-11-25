@@ -1,0 +1,13 @@
+build/
+dist/
+packages/
+.theos/
+obj/
+__pycache__/
+*.pyc
+*.o
+*.exe
+*.ilk
+*.pdb
+.superpowers/
+.DS_Store

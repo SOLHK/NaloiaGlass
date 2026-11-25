@@ -1,0 +1,15 @@
+#pragma once
+#include <stdint.h>
+
+typedef struct dispatch_queue_s *dispatch_queue_t;
+typedef intptr_t dispatch_once_t;
+typedef uint64_t dispatch_time_t;
+
+#define DISPATCH_TIME_NOW (0ULL)
+#define NSEC_PER_SEC 1000000000ULL
+
+dispatch_queue_t dispatch_get_main_queue(void);
+dispatch_time_t dispatch_time(dispatch_time_t when, int64_t delta);
+void dispatch_async(dispatch_queue_t queue, void (^block)(void));
+void dispatch_after(dispatch_time_t when, dispatch_queue_t queue, void (^block)(void));
+void dispatch_once(dispatch_once_t *predicate, void (^block)(void));
