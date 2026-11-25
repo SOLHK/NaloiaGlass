@@ -124,6 +124,7 @@ int main(void) {
                     clang,
                     "-target",
                     "arm64-apple-ios16.0",
+                    "-nostdlibinc",
                     "-fsyntax-only",
                     "-fobjc-arc",
                     "-Wall",

@@ -73,6 +73,7 @@ class SettingsAndEntryTest(unittest.TestCase):
                     clang,
                     "-target",
                     "arm64-apple-ios16.0",
+                    "-nostdlibinc",
                     "-fsyntax-only",
                     "-fobjc-arc",
                     "-Wall",
