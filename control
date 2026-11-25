@@ -1,0 +1,9 @@
+Package: com.solhk.naloiaglass
+Name: Naloia Glass
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Dual-mode iOS 26+ Liquid Glass Dock plugin for WeChat (com.tencent.xin), zero external hook dependencies.
+Maintainer: SOLHK
+Author: SOLHK
+Section: Tweaks
+Depends: firmware (>= 16.0)
